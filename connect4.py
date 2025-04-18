@@ -1,17 +1,22 @@
 import copy
 import random
 import eval
+import sys
 
+def print_board(board):
+    for row in board:
+        print(row)
+    print("")
 
 class State:
-    def __init__(self, parent=None, board=None, turn="A"):
+    def __init__(self, parent=None, board=None, player='B'):
         self.board = board
+        self.parent = parent
+        self.player = player
         if not self.board:
             self.board = []
             for row in range(6):
                 self.board.append([0, 0, 0, 0, 0, 0, 0])
-        self.parent = parent
-        self.turn = turn
 
     def is_terminal(self):
         if self.board[0].count(0) == 0:
@@ -24,130 +29,18 @@ class State:
         while row < 5 and self.board[row + 1][column] == 0:
             row += 1
         new_board = copy.deepcopy(self.board)
-        if self.turn == "A":
+        if self.player == "A":
             new_board[row][column] = 1
             return State(self, new_board, "B")
         else:
             new_board[row][column] = 2
             return State(self, new_board, "A")
-
-
-test = [
-    [0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 2, 0, 1, 2, 0],
-    [1, 1, 2, 2, 2, 1, 2],
-    [1, 1, 1, 2, 1, 2, 2],
-]
-# test = [
-#     [2, 2, 2, 1, 1, 1, 1],
-#     [1, 2, 1, 2, 1, 2, 1],
-#     [1, 2, 2, 1, 2, 1, 1],
-#     [1, 1, 2, 2, 1, 2, 1],
-#     [1, 1, 2, 2, 2, 2, 2],
-#     [1, 1, 1, 2, 2, 2, 2],
-# ]
-
-# Human v Random opponent
-# class Game_Controller:
-#     def __init__(self, state=State()):
-#         self.state = state
-
-#     def game_loop(self):
-#         while True:
-#             if self.state.is_terminal():
-#                 if eval.board_utility(self.state.board) > 0:
-#                     print("Player 1 wins")
-#                 elif eval.board_utility(self.state.board) == 0:
-#                     print("Tie")
-#                 else:
-#                     print("Player 2 wins")
-#                 return
-#             if self.state.turn == "A":
-#                 while True:
-#                     column = int(input("Player 1 enter a column between 0 and 6"))
-#                     placement = self.state.place_piece(column)
-#                     if placement:
-#                         self.state = placement
-#                         break
-#             else:
-#                 while True:
-#                     column = random.randint(0, 5)
-#                     placement = self.state.place_piece(column)
-#                     if placement:
-#                         self.state = placement
-#                         break
-#             print_board(self.state.board)
-
-# Human v AI
-# Player 1 = AI
-# Player 2 = Human
-# class Game_Controller:
-#     def __init__(self, state=State(turn="B")):
-#         self.state = state
-
-#     def game_loop(self):
-#         while True:
-#             if self.state.is_terminal():
-#                 if eval.board_utility(self.state.board) > 0:
-#                     print("Player 1 wins")
-#                 elif eval.board_utility(self.state.board) == 0:
-#                     print("Tie")
-#                 else:
-#                     print("Player 2 wins")
-#                 return
-#             if self.state.turn == "A":
-#                 next_move = backtrace(self.state, minimax(self.state, 4))
-#                 gc.state = next_move
-#             elif self.state.turn == "B":
-#                 while True:
-#                     column = int(input("Player 1 enter a column between 0 and 6"))
-#                     placement = self.state.place_piece(column)
-#                     if placement:
-#                         self.state = placement
-#                         break
-#             print_board(self.state.board)
-# Human v AI
-# Player 1 = AI
-# Player 2 = Random
-class Game_Controller:
-    def __init__(self, state=State(turn="B")):
-        self.state = state
-
-    def game_loop(self):
-        while True:
-            if self.state.is_terminal():
-                if eval.board_utility(self.state.board) > 0:
-                    print("Player 1 wins")
-                elif eval.board_utility(self.state.board) == 0:
-                    print("Tie")
-                else:
-                    print("Player 2 wins")
-                return
-            if self.state.turn == "A":
-                next_move = backtrace(self.state, minimax(self.state, 3))
-                gc.state = next_move
-            elif self.state.turn == "B":
-                while True:
-                    column = random.randint(0,6)
-                    placement = self.state.place_piece(column)
-                    if placement:
-                        self.state = placement
-                        break
-            print_board(self.state.board)
-
-def print_board(board):
-    for row in board:
-        print(row)
-    print("")
-
 #Player 1 is AI
 #Player 2 is Human
-def minimax(state, depth):
+def minimax(state, turn, depth):
     if state.is_terminal() or depth == 0:
         return state
-    elif state.turn == "A":  # max player turn
+    elif turn == "computer-next":  # max player turn
         # find the child node with the largest utility recursively
         biggest = None
         for i in range(7):
@@ -163,7 +56,7 @@ def minimax(state, depth):
                 biggest = recursive
                 continue
         return biggest
-    elif state.turn == "B":  # min player turn
+    elif state.turn == "human-next":  # min player turn
         # find the child node with the smallest utility recursively
         smallest = None
         for i in range(7):
@@ -183,6 +76,33 @@ def backtrace(start_state, end_state):
     while end_state.parent != start_state:
         end_state = end_state.parent
     return end_state
-for i in range(10):
-    gc = Game_Controller()
-    gc.game_loop()
+
+def interactive_mode(state, turn, depth):  
+    if turn == "computer-next":
+        print_board(state.board)
+        score = eval.get_score(state.board)
+        print(f'{score[0]} : {score[1]}')
+        if state.is_terminal():
+            return
+        next_move = backtrace(state, minimax(state, turn, depth))
+        return next_move
+    elif turn == "human-next":
+        return True
+
+if len(sys.argv == 5):
+    #initialize the board
+    board = []
+    input_file = open(sys.argv[1], 'r')
+    for x in range(6):
+        board.append(list(f.readline())[0:6])
+    player = input_file.readline()
+    state = State(None, board, player)
+    #interactive mode
+    if sys.argv[1] == 'interactive':
+        next_state = interactive_mode(state, sys.argv[3], sys.argv[4])
+        output_str = ""
+        for row in next_state.board:
+            output_str += ''.join(row) + "\n"
+        output_file = open('./computer.txt', 'w')
+        output_file.write(output_str)
+
