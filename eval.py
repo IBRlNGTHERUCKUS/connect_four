@@ -67,7 +67,6 @@ def evaluate_board(board):
     return total_eval
     
 def array_utility(arr):
-    util = 0
     p1_seq, p2_seq = [],[]
     for el in arr:
         if el == 1:
@@ -81,7 +80,7 @@ def array_utility(arr):
             return 1
         if p2_len == 4:
             return -1
-    return util
+    return 0
                      
 def get_score(board):
     scores = []
@@ -96,14 +95,31 @@ def get_score(board):
     #evaluate columns
     for i in range(7):
         #print(f'column {i}')
-        scores.append(get_column(board, i))
+        scores.append(array_utility(get_column(board, i)))
     #evaluate rows
     for i in range(6):
         #print(f'row {i}')
         scores.append(array_utility(board[i]))
     p1_score = scores.count(1)
-    p2_score = scores.count(2)
+    p2_score = scores.count(-1)
     return [p1_score, p2_score]             
                 
-    
-  
+test1 = [
+[0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 1, 0, 0, 0],
+[2, 0, 0, 1, 0, 0, 0],
+[2, 0, 0, 1, 1, 0, 0],
+[2, 2, 0, 1, 1, 0, 0],
+]
+test2 = [
+[0, 0, 0, 0, 0, 0, 0],
+[0, 0, 0, 0, 0, 0, 0],
+[1, 0, 0, 2, 0, 0, 0],
+[2, 0, 0, 1, 0, 0, 0],
+[2, 0, 0, 1, 1, 0, 0],
+[2, 2, 0, 1, 1, 0, 0],
+]
+
+print(evaluate_board(test1))
+print(evaluate_board(test2))

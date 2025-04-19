@@ -48,7 +48,7 @@ def minimax(state, turn, depth):
             # skip if the move is invalid
             if not child:
                 continue
-            recursive = minimax(child, depth - 1)
+            recursive = minimax(child, "human-next", depth - 1)
             if not biggest:
                 biggest = recursive
                 continue
@@ -56,7 +56,7 @@ def minimax(state, turn, depth):
                 biggest = recursive
                 continue
         return biggest
-    elif state.turn == "human-next":  # min player turn
+    elif turn == "human-next":  # min player turn
         # find the child node with the smallest utility recursively
         smallest = None
         for i in range(7):
@@ -64,7 +64,7 @@ def minimax(state, turn, depth):
             # skip if the move is invalid
             if not child:
                 continue
-            recursive = minimax(child, depth - 1)
+            recursive = minimax(child, "computer-next", depth - 1)
             if not smallest:
                 smallest = recursive
                 continue
@@ -77,32 +77,46 @@ def backtrace(start_state, end_state):
         end_state = end_state.parent
     return end_state
 
-def interactive_mode(state, turn, depth):  
-    if turn == "computer-next":
-        print_board(state.board)
-        score = eval.get_score(state.board)
-        print(f'{score[0]} : {score[1]}')
-        if state.is_terminal():
-            return
-        next_move = backtrace(state, minimax(state, turn, depth))
-        return next_move
-    elif turn == "human-next":
-        return True
+def interactive_mode(state, turn, depth):
+    while not state.is_terminal():  
+        if turn == "computer-next":
+            score = eval.get_score(state.board)
+            print_board(state.board)
+            print(f'{score[0]} : {score[1]}')
+            next_move = backtrace(state, minimax(state, turn, depth))
+            state = next_move
+            turn = "human-next"
+        elif turn == "human-next":
+            score = eval.get_score(state.board)
+            print_board(state.board)
+            print(f'{score[0]} : {score[1]}')
+            while True:
+                try:
+                    col = int(input("Enter a number between 0 and 6\n"))
+                except ValueError:
+                    print('Invalid input')
+                    continue
+                # col = random.randint(0,6)
+                next_move = state.place_piece(col)
+                # check if placement is valid
+                if next_move:
+                    state = next_move
+                    turn = "computer-next"
+                    break
+                print("Invalid input\n")
 
-if len(sys.argv == 5):
+
+# if len(sys.argv) == 5:
+if (True):
     #initialize the board
     board = []
-    input_file = open(sys.argv[1], 'r')
-    for x in range(6):
-        board.append(list(f.readline())[0:6])
-    player = input_file.readline()
-    state = State(None, board, player)
+    # input_file = open(sys.argv[2], 'r')
+    # for x in range(6):
+        # board.append(list(input_file.readline())[0:6])
+    # player = input_file.readline()
+    # state = State(None, board, player)
     #interactive mode
-    if sys.argv[1] == 'interactive':
-        next_state = interactive_mode(state, sys.argv[3], sys.argv[4])
-        output_str = ""
-        for row in next_state.board:
-            output_str += ''.join(row) + "\n"
-        output_file = open('./computer.txt', 'w')
-        output_file.write(output_str)
+    # if sys.argv[1] == 'interactive':
+        # interactive_mode(state, sys.argv[3], sys.argv[4])
+    interactive_mode(State(player="A"), "computer-next", 3)
 
