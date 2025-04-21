@@ -24,7 +24,7 @@ def get_column(board, x):
         column.append(board[y][x])
     return column
 
-def evaluate_array(arr):
+def evaluate_array(arr, max_player):
     eval = 0
     p1_seq, p2_seq = [],[]
     for el in arr:
@@ -38,32 +38,40 @@ def evaluate_array(arr):
             p2_seq.append(el)
             p1_seq = []
         p1_len, p2_len = len(p1_seq), len(p2_seq)
+        # Evaluate for player 1
         if p1_len == 4:
-            eval += p1_seq.count(1) ** 2
+            if max_player == 1:
+                eval += p1_seq.count(1) ** 2
+            elif max_player == 2:
+                eval -= p1_seq.count(1) ** 2
             p1_seq.pop(0)
+        # Evaluate for player 2
         if p2_len == 4:
-            eval -= p2_seq.count(2) ** 2
+            if max_player == 1:
+                eval -= p2_seq.count(2) ** 2
+            elif max_player == 2:
+                eval += p2_seq.count(2) ** 2
             p2_seq.pop(0)
     return eval
     
-def evaluate_board(board):
+def evaluate_board(board, max_player):
     total_eval = 0
     #evaluate down diagonals
     diag_coords = [[0,2],[0,1],[0,0],[1,0],[2,0],[3,0]]
     for coord in diag_coords:
-        total_eval += evaluate_array(get_down_diagonal(board, coord[0], coord[1]))
+        total_eval += evaluate_array(get_down_diagonal(board, coord[0], coord[1]), max_player)
     #evaluate up diagonals
     diag_coords = [[0,3],[0,4],[0,5],[1,5],[2,5],[3,5]]
     for coord in diag_coords:
-        total_eval += evaluate_array(get_up_diagonal(board, coord[0], coord[1]))
+        total_eval += evaluate_array(get_up_diagonal(board, coord[0], coord[1]), max_player)
     #evaluate columns
     for i in range(7):
         #print(f'column {i}')
-        total_eval += evaluate_array(get_column(board, i))
+        total_eval += evaluate_array(get_column(board, i), max_player)
     #evaluate rows
     for i in range(6):
         #print(f'row {i}')
-        total_eval += evaluate_array(board[i])
+        total_eval += evaluate_array(board[i], max_player)
     return total_eval
     
 def array_utility(arr):
@@ -103,23 +111,3 @@ def get_score(board):
     p1_score = scores.count(1)
     p2_score = scores.count(-1)
     return [p1_score, p2_score]             
-                
-test1 = [
-[0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 1, 0, 0, 0],
-[2, 0, 0, 1, 0, 0, 0],
-[2, 0, 0, 1, 1, 0, 0],
-[2, 2, 0, 1, 1, 0, 0],
-]
-test2 = [
-[0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0],
-[1, 0, 0, 2, 0, 0, 0],
-[2, 0, 0, 1, 0, 0, 0],
-[2, 0, 0, 1, 1, 0, 0],
-[2, 2, 0, 1, 1, 0, 0],
-]
-
-print(evaluate_board(test1))
-print(evaluate_board(test2))

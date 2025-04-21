@@ -29,46 +29,45 @@ class State:
         while row < 5 and self.board[row + 1][column] == 0:
             row += 1
         new_board = copy.deepcopy(self.board)
-        if self.player == "A":
+        if self.player == 1:
             new_board[row][column] = 1
-            return State(self, new_board, "B")
+            return State(self, new_board, 2)
         else:
             new_board[row][column] = 2
-            return State(self, new_board, "A")
-#Player 1 is AI
-#Player 2 is Human
-def minimax(state, turn, depth):
+            return State(self, new_board, 1)
+
+def minimax(state, turn, depth, max_player):
     if state.is_terminal() or depth == 0:
         return state
     elif turn == "computer-next":  # max player turn
-        # find the child node with the largest utility recursively
+        # find the child node with the largest evaluation recursively
         biggest = None
         for i in range(7):
             child = state.place_piece(i)
             # skip if the move is invalid
             if not child:
                 continue
-            recursive = minimax(child, "human-next", depth - 1)
+            recursive = minimax(child, "human-next", depth - 1, max_player)
             if not biggest:
                 biggest = recursive
                 continue
-            elif eval.evaluate_board(biggest.board) < eval.evaluate_board(recursive.board):
+            elif eval.evaluate_board(biggest.board, max_player) < eval.evaluate_board(recursive.board, max_player):
                 biggest = recursive
                 continue
         return biggest
     elif turn == "human-next":  # min player turn
-        # find the child node with the smallest utility recursively
+        # find the child node with the smallest evaluation recursively
         smallest = None
         for i in range(7):
             child = state.place_piece(i)
             # skip if the move is invalid
             if not child:
                 continue
-            recursive = minimax(child, "computer-next", depth - 1)
+            recursive = minimax(child, "computer-next", depth - 1, max_player)
             if not smallest:
                 smallest = recursive
                 continue
-            elif eval.evaluate_board(smallest.board) < eval.evaluate_board(recursive.board):
+            elif eval.evaluate_board(smallest.board, max_player) < eval.evaluate_board(recursive.board, max_player):
                 smallest = recursive
         return smallest
 
@@ -77,31 +76,52 @@ def backtrace(start_state, end_state):
         end_state = end_state.parent
     return end_state
 
+def save_state(state, file_name):
+    file = open(file_name, 'w')
+    content = ''
+    for row in state.board:
+        for el in row:
+            content += str(el)
+        content += '\n'
+    content += str(state.player)
+    file.write(content)
+
 def interactive_mode(state, turn, depth):
+    # Determine if the max player is 1 or 2
+    if turn == "computer-next":
+        max_player = state.player
+    elif turn == "human-next":
+        if state.player == 1:
+            max_player = 2
+        else:
+            max_player = 1
+    # Interactive game loop
     while not state.is_terminal():  
         if turn == "computer-next":
             score = eval.get_score(state.board)
             print_board(state.board)
             print(f'{score[0]} : {score[1]}')
-            next_move = backtrace(state, minimax(state, turn, depth))
+            next_move = backtrace(state, minimax(state, turn, depth, max_player))
             state = next_move
             turn = "human-next"
+            save_state(state, "computer.txt")
         elif turn == "human-next":
             score = eval.get_score(state.board)
             print_board(state.board)
             print(f'{score[0]} : {score[1]}')
             while True:
-                try:
-                    col = int(input("Enter a number between 0 and 6\n"))
-                except ValueError:
-                    print('Invalid input')
-                    continue
-                # col = random.randint(0,6)
+                # try:
+                #     col = int(input("Enter a number between 0 and 6\n"))
+                # except ValueError:
+                #     print('Invalid input')
+                #     continue
+                col = random.randint(0,6)
                 next_move = state.place_piece(col)
                 # check if placement is valid
                 if next_move:
                     state = next_move
                     turn = "computer-next"
+                    save_state(state, "human.txt")
                     break
                 print("Invalid input\n")
 
@@ -142,5 +162,5 @@ if (True):
     #interactive mode
     # if sys.argv[1] == 'interactive':
         # interactive_mode(state, sys.argv[3], sys.argv[4])
-    interactive_mode(State(player="A"), "computer-next", 3)
+    interactive_mode(State(player=2), "human-next", 3)
 
