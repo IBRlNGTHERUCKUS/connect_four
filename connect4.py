@@ -9,7 +9,7 @@ def print_board(board):
     print("")
 
 class State:
-    def __init__(self, parent=None, board=None, player='B'):
+    def __init__(self, parent=None, board=None, player=2):
         self.board = board
         self.parent = parent
         self.player = player
@@ -105,6 +105,30 @@ def interactive_mode(state, turn, depth):
                     break
                 print("Invalid input\n")
 
+def one_move_mode(state, turn, depth, output_file):
+    # Determine if the max player is 1 or 2
+    if turn == "computer-next":
+        max_player = state.player
+    elif turn == "human-next":
+        if state.player == 1:
+            max_player = 2
+        else:
+            max_player = 1
+    #print current state and score
+    score = eval.get_score(state.board)
+    print_board(state.board)
+    print(f'{score[0]} : {score[1]}')
+    #make the next move
+    if not state.is_terminal():
+        next_move = backtrace(state, minimax(state, turn, depth, max_player))
+        state = next_move
+    #print new state and score
+    score = eval.get_score(state.board)
+    print_board(state.board)
+    print(f'{score[0]} : {score[1]}')
+    #save the new state
+    save_state(state, output_file)
+        
 
 # if len(sys.argv) == 5:
 if (True):
